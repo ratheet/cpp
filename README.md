@@ -1,2 +1,1 @@
-# graphs
-# cpp
+# C++ toy graphs library.
