@@ -2,5 +2,5 @@
 
 To compile:
 ```shell
-$ gcc graphs_test.cc -lstdc++ -std=c++17 -o graphs_test 
+$ g++ --std=c++1z -fconcepts graphs_test.cc -o graphs_test 
 ```
