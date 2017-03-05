@@ -6,6 +6,17 @@
 using std::cout;
 using std::make_pair;
 
+DirectedGraph make_directed_graph() {
+  DirectedGraph dg;
+  Vertex v1(make_pair("A", 1));
+  Vertex v2(make_pair("B", 2));
+  Vertex v3(make_pair("C", 3));
+  dg.add(v1);
+  dg.add(v2);
+  dg.add(v3);
+  return dg;
+}
+
 void print(Graph g) {
   cout << g.to_string() << "\n";
 }
@@ -15,20 +26,12 @@ int count_vertices(Graph g) {
 }
 
 void test_print() {
-  DirectedGraph<Vertex> dg;
-  Vertex v1(make_pair("A", 1));
-  dg.add(v1);
+  DirectedGraph dg = make_directed_graph();
   print(dg);  
 }
 
 void test_count_vertices() {
-  DirectedGraph<Vertex> dg;
-  Vertex v1(make_pair("A", 1));
-  Vertex v2(make_pair("B", 2));
-  Vertex v3(make_pair("C", 3));
-  dg.add(v1);
-  dg.add(v2);
-  dg.add(v3);
+  DirectedGraph dg = make_directed_graph();
   assert(count_vertices(dg) == 3);
 }
 
