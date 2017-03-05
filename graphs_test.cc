@@ -46,12 +46,24 @@ void test_adjacent() {
   dg.add(v2);
   dg.add(v3);
 
-  assert(!adjacent(dg, std::make_unique<Vertex>(v1), std::make_unique<Vertex>(v2)));
-  assert(!adjacent(dg, std::make_unique<Vertex>(v2), std::make_unique<Vertex>(v1)));
-  assert(!adjacent(dg, std::make_unique<Vertex>(v1), std::make_unique<Vertex>(v3)));
-  assert(!adjacent(dg, std::make_unique<Vertex>(v3), std::make_unique<Vertex>(v1)));
-  assert(!adjacent(dg, std::make_unique<Vertex>(v2), std::make_unique<Vertex>(v3)));
-  assert(!adjacent(dg, std::make_unique<Vertex>(v3), std::make_unique<Vertex>(v2)));
+  assert(!graph_lib::adjacent(dg,
+			      std::make_unique<Vertex>(v1),
+			      std::make_unique<Vertex>(v2)));
+  assert(!graph_lib::adjacent(dg,
+			      std::make_unique<Vertex>(v2),
+			      std::make_unique<Vertex>(v1)));
+  assert(!graph_lib::adjacent(dg,
+			      std::make_unique<Vertex>(v1),
+			      std::make_unique<Vertex>(v3)));
+  assert(!graph_lib::adjacent(dg,
+			      std::make_unique<Vertex>(v3),
+			      std::make_unique<Vertex>(v1)));
+  assert(!graph_lib::adjacent(dg,
+			      std::make_unique<Vertex>(v2),
+			      std::make_unique<Vertex>(v3)));
+  assert(!graph_lib::adjacent(dg,
+			      std::make_unique<Vertex>(v3),
+			      std::make_unique<Vertex>(v2)));
 }
 
 void test_count_vertices() {
@@ -73,9 +85,22 @@ void test_neighbors() {
   dg.add(v2);
   dg.add(v3);
 
-  assert(neighbors(dg, std::make_unique<Vertex>(v1)).size() == 0);
-  assert(neighbors(dg, std::make_unique<Vertex>(v2)).size() == 0);
-  assert(neighbors(dg, std::make_unique<Vertex>(v3)).size() == 0);
+  assert(graph_lib::neighbors(dg,
+			      std::make_unique<Vertex>(v1)).size() == 0);
+  assert(graph_lib::neighbors(dg,
+			      std::make_unique<Vertex>(v2)).size() == 0);
+  assert(graph_lib::neighbors(dg,
+			      std::make_unique<Vertex>(v3)).size() == 0);
+}
+
+void test_add() {
+  DirectedGraph dg;
+  Vertex v1(make_pair("A", 1));
+  Vertex v2(make_pair("B", 2));
+  Vertex v3(make_pair("C", 3));
+
+  graph_lib::add(dg, v1);
+  assert(count_vertices(dg) == 1);
 }
 
 int main() {
@@ -88,10 +113,12 @@ int main() {
   test_count_vertices();
   cout << "Test edge count.\n";
   test_count_edges();
-  cout << "Testing adjacent.\n";
+  cout << "Testing adjacent().\n";
   test_adjacent();
-  cout << "Testing neighbors.\n";
+  cout << "Testing neighbors().\n";
   test_neighbors();
+  cout << "Testing add().\n";
+  test_add();
   cout << "All tests passed.\n";
 }
 
