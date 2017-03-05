@@ -37,6 +37,7 @@ concept bool Graph =
   { g.vertex_count() } -> int;
   { g.edge_count() } -> int;
   { g.are_adjacent(u, v) } -> bool;
+  { g.get_neighbors(u) } -> std::vector<Vertex_ptr>;
 };
 
 // Class definitions.
@@ -68,7 +69,6 @@ class Edge {
   Edge(Edge&& edge) noexcept
     : source_(std::move(edge.source_)), dest_(std::move(edge.dest_)) {
   }
-  // TODO: why do we need copy ctor when we have defined move ctor??
   Edge(const Edge &edge) noexcept {
     if (edge.source_) {
       source_ = std::make_unique<Vertex>(*edge.source_.get());
@@ -112,12 +112,12 @@ class Edge {
     return oss.str();
   }
 
-  Vertex* get_source() const {
-    return source_.get();
+  const unique_ptr<Vertex>& get_source() const {
+    return source_;
   }
 
-  Vertex* get_dest() const {
-    return dest_.get();
+  const unique_ptr<Vertex>& get_dest() const {
+    return dest_;
   }
   
  private:
@@ -144,10 +144,10 @@ class DirectedGraph {
   int vertex_count() const {
     int num_vertices = 0;
     for (const Edge& e : edges_) {
-      if (e.get_source()) {
+      if (e.get_source().get()) {
 	num_vertices++;
       }
-      if (e.get_dest()) {
+      if (e.get_dest().get()) {
 	num_vertices++;
       }
     }
@@ -169,14 +169,31 @@ class DirectedGraph {
   bool are_adjacent(const unique_ptr<Vertex>& u,
 		    const unique_ptr<Vertex>& v) const {
     for (const Edge& e : edges_) {
-      if (e.get_source() && *e.get_source() == *u.get()) {
-	if (e.get_dest() && *e.get_dest() == *v.get()) {
+      if (e.get_source() && *e.get_source().get() == *u.get()) {
+	if (e.get_dest() && *e.get_dest().get() == *v.get()) {
 	  return true;
 	}
       }
     }
     return false;
   }
+  
+  vector<std::unique_ptr<Vertex>> get_neighbors(const std::unique_ptr<Vertex>& vertex) const {
+    vector<std::unique_ptr<Vertex>> neighbors;
+    for (const Edge& e : edges_) {
+      if (e.get_source() && *e.get_source() == *vertex.get()) {
+	if (e.get_dest()) {
+	  neighbors.push_back(std::make_unique<Vertex>(*(e.get_dest().get())));
+	}
+      } else if (e.get_dest() && *e.get_dest() == *vertex.get()) {
+	if (e.get_source()) {
+	  neighbors.push_back(std::make_unique<Vertex>(*(e.get_source().get())));
+	}
+      }      
+    }
+    return neighbors;
+  }
+
  private:
   vector<Edge> edges_;
 };
@@ -185,4 +202,9 @@ class DirectedGraph {
 template<typename Graph, typename Vertex_ptr>
 bool adjacent(Graph& g, Vertex_ptr x, Vertex_ptr y) {
   return g.are_adjacent(x, y);
+}
+
+template<typename Graph, typename Vertex_ptr>
+vector<Vertex_ptr> neighbors(Graph& g, Vertex_ptr x) {
+  return g.get_neighbors(x);
 }

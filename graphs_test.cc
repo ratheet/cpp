@@ -47,11 +47,11 @@ void test_adjacent() {
   dg.add(v3);
 
   assert(!adjacent(dg, std::make_unique<Vertex>(v1), std::make_unique<Vertex>(v2)));
-  /*  assert(!adjacent(dg, std::make_unique(v2), std::make_unique(v1)));
-  assert(!adjacent(dg, std::make_unique(v1), std::make_unique(v3)));
-  assert(!adjacent(dg, std::make_unique(v3), std::make_unique(v1)));
-  assert(!adjacent(dg, std::make_unique(v2), std::make_unique(v3)));
-  assert(!adjacent(dg, std::make_unique(v3), std::make_unique(v2)));*/
+  assert(!adjacent(dg, std::make_unique<Vertex>(v2), std::make_unique<Vertex>(v1)));
+  assert(!adjacent(dg, std::make_unique<Vertex>(v1), std::make_unique<Vertex>(v3)));
+  assert(!adjacent(dg, std::make_unique<Vertex>(v3), std::make_unique<Vertex>(v1)));
+  assert(!adjacent(dg, std::make_unique<Vertex>(v2), std::make_unique<Vertex>(v3)));
+  assert(!adjacent(dg, std::make_unique<Vertex>(v3), std::make_unique<Vertex>(v2)));
 }
 
 void test_count_vertices() {
@@ -64,13 +64,34 @@ void test_count_edges() {
   assert(count_edges(dg) == 0);
 }
 
+void test_neighbors() {
+  DirectedGraph dg;
+  Vertex v1(make_pair("A", 1));
+  Vertex v2(make_pair("B", 2));
+  Vertex v3(make_pair("C", 3));
+  dg.add(v1);
+  dg.add(v2);
+  dg.add(v3);
+
+  assert(neighbors(dg, std::make_unique<Vertex>(v1)).size() == 0);
+  assert(neighbors(dg, std::make_unique<Vertex>(v2)).size() == 0);
+  assert(neighbors(dg, std::make_unique<Vertex>(v3)).size() == 0);
+}
+
 int main() {
   assert(__cpp_concepts >= 201500); // check compiled with -fconcepts
   assert(__cplusplus >= 201500);    // check compiled with --std=c++1z
 
+  cout << "Testing print.\n";
   test_print();
+  cout << "Testing vertex count.\n";
   test_count_vertices();
+  cout << "Test edge count.\n";
   test_count_edges();
+  cout << "Testing adjacent.\n";
+  test_adjacent();
+  cout << "Testing neighbors.\n";
+  test_neighbors();
   cout << "All tests passed.\n";
 }
 
