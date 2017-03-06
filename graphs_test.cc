@@ -25,12 +25,10 @@ void test_adjacent() {
   dg.add(v1);
   dg.add(v2);
   dg.add(v3);
-
-  std::unique_ptr<Vertex> v1_ptr= std::make_unique<Vertex>(v1);
-  std::unique_ptr<Vertex> v2_ptr = std::make_unique<Vertex>(v2);
-
-  assert(!graph_lib::adjacent(dg, v1_ptr, v2_ptr));
-  /*
+  
+  assert(!graph_lib::adjacent(dg,
+			      std::make_unique<Vertex>(v1),
+			      std::make_unique<Vertex>(v2)));
   assert(!graph_lib::adjacent(dg,
 			      std::make_unique<Vertex>(v2),
 			      std::make_unique<Vertex>(v1)));
@@ -45,7 +43,7 @@ void test_adjacent() {
 			      std::make_unique<Vertex>(v3)));
   assert(!graph_lib::adjacent(dg,
 			      std::make_unique<Vertex>(v3),
-			      std::make_unique<Vertex>(v2)));*/
+			      std::make_unique<Vertex>(v2)));
 }
 /*
 template<typename Graph>

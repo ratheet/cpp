@@ -19,25 +19,23 @@ concept bool Stringable = requires(S s) {
   { s.to_string() } -> string;
 };
 
-template<typename V>
-concept bool Vertex_ptr =
-  requires(V& v) {
-  { v.get() } -> Vertex*; 
+template<typename T>
+concept bool Vertex_ptr = requires {
+  typename std::unique_ptr<Vertex>;
 };
 
 template<typename E>
 concept bool Edge_ptr = Stringable<E>;
 
-template<class G, class U, class V>
+template<typename G, typename V>
   concept bool Graph = 
   Stringable<G> &&
-  Vertex_ptr<U> &&
   Vertex_ptr<V> &&
-  requires(G g, U u, V v) {
+  requires(G g, V u, V v) {
   //{ g.vertex_count() } -> int;
   //{ g.edge_count() } -> int;
+  //  { g.are_adjacent(u) } -> bool;
   { g.are_adjacent(u, v) } -> bool;
-  //{ g.are_adjacent(u, v) } -> bool;
   //{ g.get_neighbors(u) } -> std::vector<Vertex_ptr>;
   //{ g.add(u) } -> void;
   //{ g.remove(u) } -> void;
@@ -59,7 +57,7 @@ class Vertex {
     oss << "(" << this->value_.first << ", " << this->value_.second << ")";
     return oss.str();
   }
-  
+
  private:
   Value value_;
 };
@@ -193,8 +191,16 @@ class DirectedGraph {
     return num_edges;
   }
 
-  bool are_adjacent(Vertex_ptr& u,
-		    Vertex_ptr& v) const {
+  bool are_adjacent(Vertex_ptr& u, Vertex_ptr& v) {
+    return false;
+  }
+  /*  bool are_adjacent(unique_ptr<Vertex>& u, unique_ptr<Vertex>& v) {
+    return false;
+    }*/
+  
+  /*  bool are_adjacent(Vertex_ptr& u,
+      Vertex_ptr& v) const {*/
+  /*  bool are_adjacent(unique_ptr<Vertex>& u, unique_ptr<Vertex>& v) {
     for (const Edge& e : edges_) {
       if (e.get_source() && *(e.get_source().get()) == *(u.get())) {
 	if (e.get_dest() && *(e.get_dest().get()) == *(v.get())) {
@@ -203,8 +209,8 @@ class DirectedGraph {
       }
     }
     return false;
-  }
-
+    }
+  */
   vector<unique_ptr<Vertex>> get_neighbors(const unique_ptr<Vertex>& vertex)
       const {
     vector<unique_ptr<Vertex>> neighbors;
@@ -230,8 +236,9 @@ class DirectedGraph {
 
 // Library functions using concepts.
 namespace graph_lib {
-  template<Graph<Vertex_ptr, Vertex_ptr> G, Vertex_ptr V, Vertex_ptr U>
-  bool adjacent(G& g, V& x, U& y) {
+  template<Graph<Vertex_ptr> G>
+  bool adjacent(G&& g, Vertex_ptr&& x, Vertex_ptr&& y) { //, V& y) {
+    //    return g.are_adjacent(x);
     return g.are_adjacent(x, y);
   }
   /*
