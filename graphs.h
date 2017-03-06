@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -20,26 +21,27 @@ concept bool Stringable = requires(S s) {
 
 template<typename V>
 concept bool Vertex_ptr =
-  Stringable<V> &&
-  requires(V v) {
-  { v.get() } -> Vertex*;
+  requires(V& v) {
+  { v.get() } -> Vertex*; 
 };
 
 template<typename E>
 concept bool Edge_ptr = Stringable<E>;
 
-template<typename G, typename U, typename V>
-concept bool Graph =
+template<class G, class U, class V>
+  concept bool Graph = 
   Stringable<G> &&
   Vertex_ptr<U> &&
   Vertex_ptr<V> &&
   requires(G g, U u, V v) {
-  { g.vertex_count() } -> int;
-  { g.edge_count() } -> int;
+  //{ g.vertex_count() } -> int;
+  //{ g.edge_count() } -> int;
   { g.are_adjacent(u, v) } -> bool;
-  { g.get_neighbors(u) } -> std::vector<Vertex_ptr>;
-  { g.add(u) } -> void;
-};
+  //{ g.are_adjacent(u, v) } -> bool;
+  //{ g.get_neighbors(u) } -> std::vector<Vertex_ptr>;
+  //{ g.add(u) } -> void;
+  //{ g.remove(u) } -> void;
+  };
 
 // Class definitions.
 class Vertex {
@@ -87,6 +89,17 @@ class Edge {
     return *this;
   }
   Edge& operator=(const Edge&) noexcept = delete;
+  bool operator==(const Edge& other) const {
+    if (this == &other) {
+      return true;
+    }
+    if (this->source_ && *(this->source_.get()) == *(other.source_.get())) {
+      if (this->dest_ && *(this->dest_.get()) == *(other.dest_.get())) {
+	return true;
+      }
+    }
+    return false;
+  }
 
   void set_source(const Vertex& v) {
     source_ = std::make_unique<Vertex>(v);
@@ -141,6 +154,19 @@ class DirectedGraph {
     edge.set_source(v);
     edges_.push_back(edge);
   }
+
+  void remove(const Vertex& v) {
+    for (Edge& e : edges_) {
+      if (e.get_source().get() && *(e.get_source().get()) == v) {
+	// Remove the edge: if the source is gone, the edge to the dest
+	// is no longer needed.
+	auto it = std::find(edges_.begin(), edges_.end(), e);
+	if (it != edges_.end()) {
+	  edges_.erase(it);
+	}
+      }
+    }
+  }
   
   int vertex_count() const {
     int num_vertices = 0;
@@ -167,8 +193,8 @@ class DirectedGraph {
     return num_edges;
   }
 
-  bool are_adjacent(const unique_ptr<Vertex>& u,
-		    const unique_ptr<Vertex>& v) const {
+  bool are_adjacent(Vertex_ptr& u,
+		    Vertex_ptr& v) const {
     for (const Edge& e : edges_) {
       if (e.get_source() && *(e.get_source().get()) == *(u.get())) {
 	if (e.get_dest() && *(e.get_dest().get()) == *(v.get())) {
@@ -178,7 +204,7 @@ class DirectedGraph {
     }
     return false;
   }
-  
+
   vector<unique_ptr<Vertex>> get_neighbors(const unique_ptr<Vertex>& vertex)
       const {
     vector<unique_ptr<Vertex>> neighbors;
@@ -204,19 +230,28 @@ class DirectedGraph {
 
 // Library functions using concepts.
 namespace graph_lib {
-  template<typename Graph, typename Vertex_ptr>
-    bool adjacent(Graph& g, Vertex_ptr x, Vertex_ptr y) {
+  template<Graph<Vertex_ptr, Vertex_ptr> G, Vertex_ptr V, Vertex_ptr U>
+  bool adjacent(G& g, V& x, U& y) {
     return g.are_adjacent(x, y);
   }
-
+  /*
   template<typename Graph, typename Vertex_ptr>
-    vector<Vertex_ptr> neighbors(Graph& g, Vertex_ptr x) {
+  vector<Vertex_ptr> neighbors(Graph& g, Vertex_ptr x) {
     return g.get_neighbors(x);
   }
 
   template<typename Graph, typename Vertex_ptr>
-    void add(Graph& g, Vertex_ptr x) {
-    std::cout << "Adding...\n";
+  void add(Graph& g, Vertex_ptr x) {
+    // TODO: this seems to work with Vertex (not just unique_ptr<Vertex>).
     g.add(x);
   }
+
+  template<typename Graph, typename Vertex_ptr>
+  void remove(Graph& g, Vertex_ptr x) {
+    g.remove(x);
+  }
+
+  template<typename Graph, typename Vertex_ptr>
+  void add_edge(Graph& g, Vertex_ptr x, Vertex_ptr y);
+  */
 } // namespace graph_lib
