@@ -10,7 +10,8 @@ using std::unique_ptr;
 using std::vector;
 using Value = std::pair<string, int>;
 
-// Forward-declare Vertex class for use by Vertex_ptr concept.
+// Forward-declarations.
+class DirectedGraph;
 class Vertex;
 
 // Concept definitions.
@@ -20,26 +21,41 @@ concept bool Stringable = requires(S s) {
 };
 
 template<typename T>
-concept bool Vertex_ptr = requires {
-  typename std::unique_ptr<Vertex>;
+concept bool Vertex_ptr = requires(T x) {
+  { *x } -> const Vertex&;
 };
 
-template<typename E>
-concept bool Edge_ptr = Stringable<E>;
-
-template<typename G, typename V>
-  concept bool Graph = 
+template<typename G, typename T>
+concept bool Graph = 
   Stringable<G> &&
-  Vertex_ptr<V> &&
-  requires(G g, V u, V v) {
-  //{ g.vertex_count() } -> int;
-  //{ g.edge_count() } -> int;
-  //  { g.are_adjacent(u) } -> bool;
+  Vertex_ptr<T> &&
+  requires(G&& g, T u, T v) {
+  { g.add(u) } -> void;
   { g.are_adjacent(u, v) } -> bool;
-  //{ g.get_neighbors(u) } -> std::vector<Vertex_ptr>;
-  //{ g.add(u) } -> void;
-  //{ g.remove(u) } -> void;
+  { g.edge_count() } -> int;
+  { g.get_neighbors(u) } -> std::vector<T>;
+  { g.remove(u) } -> void;
+  { g.vertex_count() } -> int;
   };
+
+// Library functions using concepts.
+namespace graph_lib {
+  bool adjacent(Graph<Vertex*>&& g, Vertex_ptr& u, Vertex_ptr& v) {
+    return g.are_adjacent(u, v);
+  }
+  
+  vector<Vertex*> neighbors(Graph<Vertex*>& g, Vertex_ptr x) {
+    return g.get_neighbors(x);
+  }
+  
+  void add(Graph<Vertex*>& g, Vertex_ptr x) {
+    g.add(x);
+  }
+
+  void remove(Graph<Vertex*>& g, Vertex_ptr x) {
+    g.remove(x);
+  }
+}
 
 // Class definitions.
 class Vertex {
@@ -147,15 +163,15 @@ class DirectedGraph {
     return str_value;
   }
 
-  void add(const Vertex& v) {
+  void add(const Vertex* v) {
     Edge edge;
-    edge.set_source(v);
+    edge.set_source(*v);
     edges_.push_back(edge);
   }
 
-  void remove(const Vertex& v) {
+  void remove(const Vertex* v) {
     for (Edge& e : edges_) {
-      if (e.get_source().get() && *(e.get_source().get()) == v) {
+      if (e.get_source().get() && *(e.get_source().get()) == *v) {
 	// Remove the edge: if the source is gone, the edge to the dest
 	// is no longer needed.
 	auto it = std::find(edges_.begin(), edges_.end(), e);
@@ -192,38 +208,30 @@ class DirectedGraph {
   }
 
   bool are_adjacent(Vertex_ptr& u, Vertex_ptr& v) {
-    return false;
-  }
-  /*  bool are_adjacent(unique_ptr<Vertex>& u, unique_ptr<Vertex>& v) {
-    return false;
-    }*/
-  
-  /*  bool are_adjacent(Vertex_ptr& u,
-      Vertex_ptr& v) const {*/
-  /*  bool are_adjacent(unique_ptr<Vertex>& u, unique_ptr<Vertex>& v) {
     for (const Edge& e : edges_) {
-      if (e.get_source() && *(e.get_source().get()) == *(u.get())) {
-	if (e.get_dest() && *(e.get_dest().get()) == *(v.get())) {
+      if (e.get_source() && *(e.get_source().get()) == *u) {
+	if (e.get_dest() && *(e.get_dest().get()) == *v) {
 	  return true;
 	}
       }
     }
     return false;
-    }
-  */
-  vector<unique_ptr<Vertex>> get_neighbors(const unique_ptr<Vertex>& vertex)
+  }
+
+  vector<Vertex_ptr> get_neighbors(Vertex_ptr& vertex)
       const {
-    vector<unique_ptr<Vertex>> neighbors;
+    vector<Vertex*> neighbors;
     for (const Edge& e : edges_) {
-      if (e.get_source() && *(e.get_source()) == *vertex.get()) {
+      if (e.get_source() && *(e.get_source()) == *vertex) {
 	if (e.get_dest()) {
 	  neighbors
-	    .push_back(std::make_unique<Vertex>(*(e.get_dest().get())));
+	    .push_back(std::make_unique<Vertex>(*(e.get_dest().get())).get());
+						
 	}
-      } else if (e.get_dest() && *(e.get_dest()) == *(vertex.get())) {
+      } else if (e.get_dest() && *(e.get_dest()) == *vertex) {
 	if (e.get_source()) {
 	  neighbors
-	    .push_back(std::make_unique<Vertex>(*(e.get_source().get())));
+	    .push_back(std::make_unique<Vertex>(*(e.get_source().get())).get());
 	}
       }      
     }
@@ -233,32 +241,3 @@ class DirectedGraph {
  private:
   vector<Edge> edges_;
 };
-
-// Library functions using concepts.
-namespace graph_lib {
-  template<Graph<Vertex_ptr> G>
-  bool adjacent(G&& g, Vertex_ptr&& x, Vertex_ptr&& y) { //, V& y) {
-    //    return g.are_adjacent(x);
-    return g.are_adjacent(x, y);
-  }
-  /*
-  template<typename Graph, typename Vertex_ptr>
-  vector<Vertex_ptr> neighbors(Graph& g, Vertex_ptr x) {
-    return g.get_neighbors(x);
-  }
-
-  template<typename Graph, typename Vertex_ptr>
-  void add(Graph& g, Vertex_ptr x) {
-    // TODO: this seems to work with Vertex (not just unique_ptr<Vertex>).
-    g.add(x);
-  }
-
-  template<typename Graph, typename Vertex_ptr>
-  void remove(Graph& g, Vertex_ptr x) {
-    g.remove(x);
-  }
-
-  template<typename Graph, typename Vertex_ptr>
-  void add_edge(Graph& g, Vertex_ptr x, Vertex_ptr y);
-  */
-} // namespace graph_lib
