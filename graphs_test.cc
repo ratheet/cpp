@@ -40,15 +40,15 @@ void test_adjacent() {
   assert(!graph_lib::adjacent(dg, v3_ptr, v2_ptr));
 }
 
-void print(Graph<Vertex*> g) {
+void print(Graph<Vertex*, Edge*> g) {
   cout << g.to_string() << "\n";
 }
 
-int count_vertices(Graph<Vertex*> g) {
+int count_vertices(Graph<Vertex*, Edge*> g) {
   return g.vertex_count();
 }
 
-int count_edges(Graph<Vertex*> g) {
+int count_edges(Graph<Vertex*, Edge*> g) {
   return g.edge_count();
 }
 
@@ -106,6 +106,11 @@ void test_add_edge() {
   graph_lib::add_edge(dg, &v1, &v3);
 
   assert(dg.edge_count() == 2);
+
+  Edge e1(std::make_unique<Vertex>(v1), std::make_unique<Vertex>(v2));
+  graph_lib::add_edge(dg, &e1);
+
+  assert(dg.edge_count() == 3);
 }
 
 void test_remove() {

@@ -11,7 +11,7 @@ using std::vector;
 using Value = std::pair<string, int>;
 
 // Forward-declarations.
-class DirectedGraph;
+class Edge;
 class Vertex;
 
 // Concept definitions.
@@ -20,45 +20,56 @@ concept bool Stringable = requires(S s) {
   { s.to_string() } -> string;
 };
 
-template<typename T>
-concept bool Vertex_ptr = requires(T x) {
-  { *x } -> const Vertex&;
+template<typename V>
+concept bool Vertex_ptr = requires(V v) {
+  { *v } -> const Vertex&;
 };
 
-template<typename G, typename T>
+template<typename E>
+concept bool Edge_ptr = requires(E e) {
+  { *e } -> const Edge&;
+};
+
+template<typename G, typename V, typename E>
 concept bool Graph = 
   Stringable<G> &&
-  Vertex_ptr<T> &&
-  requires(G&& g, T u, T v) {
+  Vertex_ptr<V> &&
+  Edge_ptr<E> &&
+  requires(G&& g, V u, V v, E e) {
   { g.add(u) } -> void;
   { g.add_edge(u, v) } -> void;
+  { g.add_edge(e) } -> void;
   { g.are_adjacent(u, v) } -> bool;
   { g.edge_count() } -> int;
-  { g.get_neighbors(u) } -> std::vector<T>;
+  { g.get_neighbors(u) } -> std::vector<V>;
   { g.remove(u) } -> void;
   { g.vertex_count() } -> int;
   };
 
 // Library functions using concepts.
 namespace graph_lib {
-  bool adjacent(Graph<Vertex*>&& g, Vertex_ptr& u, Vertex_ptr& v) {
+  bool adjacent(Graph<Vertex*, Edge*>&& g, Vertex_ptr& u, Vertex_ptr& v) {
     return g.are_adjacent(u, v);
   }
   
-  vector<Vertex*> neighbors(Graph<Vertex*>& g, Vertex_ptr x) {
+  vector<Vertex*> neighbors(Graph<Vertex*, Edge*>& g, Vertex_ptr x) {
     return g.get_neighbors(x);
   }
   
-  void add(Graph<Vertex*>& g, Vertex_ptr x) {
+  void add(Graph<Vertex*, Edge*>& g, Vertex_ptr x) {
     g.add(x);
   }
 
-  void remove(Graph<Vertex*>& g, Vertex_ptr x) {
+  void remove(Graph<Vertex*, Edge*>& g, Vertex_ptr x) {
     g.remove(x);
   }
 
-  void add_edge(Graph<Vertex*>& g, Vertex_ptr x, Vertex_ptr y) {
+  void add_edge(Graph<Vertex*, Edge*>& g, Vertex_ptr x, Vertex_ptr y) {
     g.add_edge(x, y);
+  }
+
+  void add_edge(Graph<Vertex*, Edge*>& g, Edge_ptr x) {
+    g.add_edge(x);
   }
 }
 
@@ -179,6 +190,10 @@ class DirectedGraph {
     edge.set_source(*u);
     edge.set_dest(*v);
     edges_.push_back(edge);
+  }
+
+  void add_edge(const Edge* e) {
+    edges_.push_back(*e);
   }
 
   void remove(const Vertex* v) {
