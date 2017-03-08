@@ -92,9 +92,21 @@ void test_add() {
   Vertex v3(make_pair("C", 3));
 
   graph_lib::add(dg, &v1);
-  assert(count_vertices(dg) == 1);
+  assert(dg.vertex_count() == 1);
   // TODO: assert v1 in graph
-  }
+}
+
+void test_add_edge() {
+  DirectedGraph dg;
+  Vertex v1(make_pair("A", 1));
+  Vertex v2(make_pair("B", 2));
+  Vertex v3(make_pair("C", 3));
+
+  graph_lib::add_edge(dg, &v1, &v2);
+  graph_lib::add_edge(dg, &v1, &v3);
+
+  assert(dg.edge_count() == 2);
+}
 
 void test_remove() {
   DirectedGraph dg;
@@ -121,6 +133,8 @@ int main() {
   test_neighbors();
   cout << "Testing add().\n";
   test_add();
+  cout << "Testing add_edge().\n";
+  test_add_edge();
   cout << "Testing remove().\n";
   test_remove();
   cout << "Testing print.\n";

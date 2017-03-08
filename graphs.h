@@ -31,6 +31,7 @@ concept bool Graph =
   Vertex_ptr<T> &&
   requires(G&& g, T u, T v) {
   { g.add(u) } -> void;
+  { g.add_edge(u, v) } -> void;
   { g.are_adjacent(u, v) } -> bool;
   { g.edge_count() } -> int;
   { g.get_neighbors(u) } -> std::vector<T>;
@@ -54,6 +55,10 @@ namespace graph_lib {
 
   void remove(Graph<Vertex*>& g, Vertex_ptr x) {
     g.remove(x);
+  }
+
+  void add_edge(Graph<Vertex*>& g, Vertex_ptr x, Vertex_ptr y) {
+    g.add_edge(x, y);
   }
 }
 
@@ -166,6 +171,13 @@ class DirectedGraph {
   void add(const Vertex* v) {
     Edge edge;
     edge.set_source(*v);
+    edges_.push_back(edge);
+  }
+
+  void add_edge(const Vertex* u, const Vertex* v) {
+    Edge edge;
+    edge.set_source(*u);
+    edge.set_dest(*v);
     edges_.push_back(edge);
   }
 
