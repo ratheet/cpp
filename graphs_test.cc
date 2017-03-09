@@ -31,7 +31,7 @@ void test_adjacent() {
   dg.add(v1_ptr);
   dg.add(v2_ptr);
   dg.add(v3_ptr);
-  
+
   assert(!graph_lib::adjacent(dg, v1_ptr, v2_ptr));
   assert(!graph_lib::adjacent(dg, v2_ptr, v1_ptr));
   assert(!graph_lib::adjacent(dg, v1_ptr, v3_ptr));
@@ -107,7 +107,9 @@ void test_add_edge() {
 
   assert(dg.edge_count() == 2);
 
-  Edge e1(std::make_unique<Vertex>(v1), std::make_unique<Vertex>(v2));
+  Edge e1(std::make_unique<Vertex>(v1),
+	  std::make_unique<Vertex>(v2),
+	  std::make_unique<Value>(kDummyValue));
   graph_lib::add_edge(dg, &e1);
 
   assert(dg.edge_count() == 3);
@@ -128,12 +130,79 @@ void test_remove() {
   // TODO: assert v1 no longer in graph
 }
 
+void test_value() {
+  DirectedGraph dg;
+  Value val1 = make_pair("A", 1);
+  Value val2 = make_pair("B", 2);
+  Value val3 = make_pair("C", 3);
+  Vertex v1(val1);
+  Vertex v2(val2);
+  Vertex v3(val3);
+  dg.add(&v1);
+  dg.add(&v2);
+  dg.add(&v3);
+
+  assert(val1 == graph_lib::value(&v1));
+  assert(val2 == graph_lib::value(&v2));
+  assert(val3 == graph_lib::value(&v3));
+}
+
+void test_set_value() {
+  DirectedGraph dg;
+  Value val1 = make_pair("A", 1);
+  Value val2 = make_pair("B", 2);
+  Value val3 = make_pair("C", 3);
+  Vertex v1(val1);
+  Vertex v2(val2);
+  Vertex v3(val3);
+  dg.add(&v1);
+  dg.add(&v2);
+  dg.add(&v3);
+
+  // Cycle the values between vertices.
+  graph_lib::set_value(&v1, val2);
+  graph_lib::set_value(&v2, val3);
+  graph_lib::set_value(&v3, val1);
+  assert(val2 == v1.value());
+  assert(val3 == v2.value());
+  assert(val1 == v3.value());
+}
+
+void test_edge_value() {
+  Value val1 = make_pair("A", 1);
+  Value val2 = make_pair("B", 2);
+  Value val3 = make_pair("C", 3);
+  Vertex v1(val1);
+  Vertex v2(val2);
+ 
+  Edge e = Edge(std::make_unique<Vertex>(v1),
+		 std::make_unique<Vertex>(v2),
+		 std::make_unique<Value>(val3));
+  assert(val3 == graph_lib::value(&e));
+}
+
+void test_set_edge_value() {
+  Value val1 = make_pair("A", 1);
+  Value val2 = make_pair("B", 2);
+  Value val3 = make_pair("C", 3);
+  Vertex v1(val1);
+  Vertex v2(val2);
+ 
+  Edge e = Edge(std::make_unique<Vertex>(v1),
+		std::make_unique<Vertex>(v2),
+		std::make_unique<Value>(val3));
+  assert(val3 == graph_lib::value(&e));
+  graph_lib::set_value(&e, val2);
+  assert(val2 == *e.value());
+}
+
 int main() {
   assert(__cpp_concepts >= 201500); // check compiled with -fconcepts
   assert(__cplusplus >= 201500);    // check compiled with --std=c++1z
 
   cout << "Testing adjacent().\n";
   test_adjacent();
+
   cout << "Testing neighbors().\n";
   test_neighbors();
   cout << "Testing add().\n";
@@ -148,7 +217,12 @@ int main() {
   test_count_vertices();
   cout << "Test edge count.\n";
   test_count_edges();
-
+  cout << "Testing value().\n";
+  test_value();
+  cout << "Testing set_value().\n";
+  test_set_value();
+  cout << "Testing set_edge_value().\n";
+  test_set_edge_value();
   cout << "All tests passed.\n";
 }
 

@@ -10,6 +10,8 @@ using std::unique_ptr;
 using std::vector;
 using Value = std::pair<string, int>;
 
+const Value kDummyValue = std::pair<string, int>("DUMMY", -1);
+
 // Forward-declarations.
 class Edge;
 class Vertex;
@@ -21,13 +23,17 @@ concept bool Stringable = requires(S s) {
 };
 
 template<typename V>
-concept bool Vertex_ptr = requires(V v) {
+concept bool Vertex_ptr = requires(V v, Value w) {
   { *v } -> const Vertex&;
+  { v->value() } -> Value&;
+  { v->set_value(w) } -> void;
 };
 
 template<typename E>
-concept bool Edge_ptr = requires(E e) {
+concept bool Edge_ptr = requires(E e, Value v) {
   { *e } -> const Edge&;
+  { e->value() } -> Value*;
+  { e->set_value(v) } -> void;
 };
 
 template<typename G, typename V, typename E>
@@ -71,6 +77,22 @@ namespace graph_lib {
   void add_edge(Graph<Vertex*, Edge*>& g, Edge_ptr x) {
     g.add_edge(x);
   }
+
+  Value value(Vertex_ptr x) {
+    return x->value();
+  }
+
+  void set_value(Vertex_ptr x, Value v) {
+    x->set_value(v);
+  }
+
+  Value value(Edge_ptr e) {
+    return *e->value();
+  }
+
+  void set_value(Edge_ptr e, Value v) {
+    e->set_value(v);
+  }
 }
 
 // Class definitions.
@@ -84,10 +106,22 @@ class Vertex {
     }
     return this->value_ == other.value_;
   }
+  bool operator!=(const Vertex& other) const {
+    if (this == &other) {
+      return false;
+    }
+    return this->value_ != other.value_;
+  }
   string to_string() const {
     ostringstream oss;
     oss << "(" << this->value_.first << ", " << this->value_.second << ")";
     return oss.str();
+  }
+  Value& value() {
+    return value_;
+  }
+  void set_value(Value& value) {
+    value_ = value;
   }
 
  private:
@@ -97,17 +131,19 @@ class Vertex {
 class Edge {
  public:
   Edge() {}
-  Edge(unique_ptr<Vertex> source, unique_ptr<Vertex> dest) noexcept
-    : source_(std::move(source)), dest_(std::move(dest)) {}
+  Edge(unique_ptr<Vertex> source, unique_ptr<Vertex> dest, unique_ptr<Value> value) noexcept
+    : source_(std::move(source)), dest_(std::move(dest)), value_(std::move(value)) {}
   Edge(Edge&& edge) noexcept
-    : source_(std::move(edge.source_)), dest_(std::move(edge.dest_)) {
-  }
-  Edge(const Edge &edge) noexcept {
+    : source_(std::move(edge.source_)), dest_(std::move(edge.dest_)), value_(std::move(edge.value_)) {}
+  Edge(const Edge &edge) noexcept { 
     if (edge.source_) {
       source_ = std::make_unique<Vertex>(*(edge.source_.get()));
     }
     if (edge.dest_) {
       dest_ = std::make_unique<Vertex>(*(edge.dest_.get()));
+    }
+    if (edge.value_) {
+      value_ = std::make_unique<Value>(*(edge.value_.get()));
     }
   }
   ~Edge() noexcept {}
@@ -115,6 +151,7 @@ class Edge {
     if (this != &edge) {
       source_ = std::move(edge.source_);
       dest_ = std::move(edge.dest_);
+      value_ = std::move(edge.value_);
     }
     return *this;
   }
@@ -125,7 +162,9 @@ class Edge {
     }
     if (this->source_ && *(this->source_.get()) == *(other.source_.get())) {
       if (this->dest_ && *(this->dest_.get()) == *(other.dest_.get())) {
-	return true;
+	if (this->value_ && *(this->value_.get()) == *(other.value_.get())) {
+	  return true;
+	}
       }
     }
     return false;
@@ -163,10 +202,19 @@ class Edge {
   const unique_ptr<Vertex>& get_dest() const {
     return dest_;
   }
-  
+
+  Value* value() {
+    return value_.get();
+  }
+
+  void set_value(Value& value) {
+    value_ = std::make_unique<Value>(value);
+  }
+
  private:
   unique_ptr<Vertex> source_;
   unique_ptr<Vertex> dest_;
+  unique_ptr<Value> value_ = std::make_unique<Value>(kDummyValue);
 };
 
 class DirectedGraph {
@@ -236,8 +284,8 @@ class DirectedGraph {
 
   bool are_adjacent(Vertex_ptr& u, Vertex_ptr& v) {
     for (const Edge& e : edges_) {
-      if (e.get_source() && *(e.get_source().get()) == *u) {
-	if (e.get_dest() && *(e.get_dest().get()) == *v) {
+      if (e.get_source().get() && *(e.get_source().get()) == *u) {
+	if (e.get_dest().get() && *(e.get_dest().get()) == *v) {
 	  return true;
 	}
       }
