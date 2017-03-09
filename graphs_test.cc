@@ -196,6 +196,21 @@ void test_set_edge_value() {
   assert(val2 == *e.value());
 }
 
+void test_top() {
+DirectedGraph dg;
+  Value val1 = make_pair("A", 1);
+  Value val2 = make_pair("B", 2);
+  Value val3 = make_pair("C", 3);
+  Vertex v1(val1);
+  Vertex v2(val2);
+  Vertex v3(val3);
+  dg.add(&v1);
+  dg.add(&v2);
+  dg.add(&v3);
+
+  assert(v1 == *graph_lib::top(dg));
+}
+
 int main() {
   assert(__cpp_concepts >= 201500); // check compiled with -fconcepts
   assert(__cplusplus >= 201500);    // check compiled with --std=c++1z
@@ -223,6 +238,8 @@ int main() {
   test_set_value();
   cout << "Testing set_edge_value().\n";
   test_set_edge_value();
+  cout << "Testing top().\n";
+  test_top();
   cout << "All tests passed.\n";
 }
 

@@ -49,6 +49,7 @@ concept bool Graph =
   { g.edge_count() } -> int;
   { g.get_neighbors(u) } -> std::vector<V>;
   { g.remove(u) } -> void;
+  { g.top() } -> V;
   { g.vertex_count() } -> int;
   };
 
@@ -92,6 +93,10 @@ namespace graph_lib {
 
   void set_value(Edge_ptr e, Value v) {
     e->set_value(v);
+  }
+
+  Vertex_ptr top(Graph<Vertex*, Edge*>& g) {
+    return g.top();
   }
 }
 
@@ -219,14 +224,6 @@ class Edge {
 
 class DirectedGraph {
  public:
-  string to_string() const {
-    string str_value = "Graph (# vertices = " + std::to_string(vertex_count()) + "):\n";
-    for (const Edge& e : edges_) {
-      str_value += e.to_string() + "\n";
-    }
-    return str_value;
-  }
-
   void add(const Vertex* v) {
     Edge edge;
     edge.set_source(*v);
@@ -244,30 +241,15 @@ class DirectedGraph {
     edges_.push_back(*e);
   }
 
-  void remove(const Vertex* v) {
-    for (Edge& e : edges_) {
-      if (e.get_source().get() && *(e.get_source().get()) == *v) {
-	// Remove the edge: if the source is gone, the edge to the dest
-	// is no longer needed.
-	auto it = std::find(edges_.begin(), edges_.end(), e);
-	if (it != edges_.end()) {
-	  edges_.erase(it);
+  bool are_adjacent(Vertex_ptr& u, Vertex_ptr& v) {
+    for (const Edge& e : edges_) {
+      if (e.get_source().get() && *(e.get_source().get()) == *u) {
+	if (e.get_dest().get() && *(e.get_dest().get()) == *v) {
+	  return true;
 	}
       }
     }
-  }
-  
-  int vertex_count() const {
-    int num_vertices = 0;
-    for (const Edge& e : edges_) {
-      if (e.get_source().get()) {
-	num_vertices++;
-      }
-      if (e.get_dest().get()) {
-	num_vertices++;
-      }
-    }
-    return num_vertices;
+    return false;
   }
 
   int edge_count() const {
@@ -280,17 +262,6 @@ class DirectedGraph {
       }
     }
     return num_edges;
-  }
-
-  bool are_adjacent(Vertex_ptr& u, Vertex_ptr& v) {
-    for (const Edge& e : edges_) {
-      if (e.get_source().get() && *(e.get_source().get()) == *u) {
-	if (e.get_dest().get() && *(e.get_dest().get()) == *v) {
-	  return true;
-	}
-      }
-    }
-    return false;
   }
 
   vector<Vertex_ptr> get_neighbors(Vertex_ptr& vertex)
@@ -311,6 +282,49 @@ class DirectedGraph {
       }      
     }
     return neighbors;
+  }
+
+  void remove(const Vertex* v) {
+    for (Edge& e : edges_) {
+      if (e.get_source().get() && *(e.get_source().get()) == *v) {
+	// Remove the edge: if the source is gone, the edge to the dest
+	// is no longer needed.
+	auto it = std::find(edges_.begin(), edges_.end(), e);
+	if (it != edges_.end()) {
+	  edges_.erase(it);
+	}
+      }
+    }
+  }
+
+  string to_string() const {
+    string str_value = "Graph (# vertices = " + std::to_string(vertex_count()) + "):\n";
+    for (const Edge& e : edges_) {
+      str_value += e.to_string() + "\n";
+    }
+    return str_value;
+  }
+
+  Vertex* top() {
+    for (const Edge& e : edges_) {
+      if (e.get_source().get()) {
+	return e.get_source().get();
+      }
+    }
+    return nullptr;
+  }
+  
+  int vertex_count() const {
+    int num_vertices = 0;
+    for (const Edge& e : edges_) {
+      if (e.get_source().get()) {
+	num_vertices++;
+      }
+      if (e.get_dest().get()) {
+	num_vertices++;
+      }
+    }
+    return num_vertices;
   }
 
  private:
