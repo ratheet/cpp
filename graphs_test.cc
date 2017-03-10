@@ -38,6 +38,12 @@ void test_adjacent() {
   assert(!graph_lib::adjacent(dg, v3_ptr, v1_ptr));
   assert(!graph_lib::adjacent(dg, v2_ptr, v3_ptr));
   assert(!graph_lib::adjacent(dg, v3_ptr, v2_ptr));
+
+  DirectedAcyclicGraph dag;
+  dag.add(v1_ptr);
+  dag.add(v2_ptr);
+  dag.add(v3_ptr);
+  assert(!graph_lib::adjacent(dag, v1_ptr, v2_ptr));
 }
 
 void print(Graph<Vertex*, Edge*> g) {
@@ -197,7 +203,7 @@ void test_set_edge_value() {
 }
 
 void test_top() {
-DirectedGraph dg;
+  DirectedGraph dg;
   Value val1 = make_pair("A", 1);
   Value val2 = make_pair("B", 2);
   Value val3 = make_pair("C", 3);
@@ -217,7 +223,6 @@ int main() {
 
   cout << "Testing adjacent().\n";
   test_adjacent();
-
   cout << "Testing neighbors().\n";
   test_neighbors();
   cout << "Testing add().\n";

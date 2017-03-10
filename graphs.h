@@ -241,7 +241,7 @@ class DirectedGraph {
     edges_.push_back(*e);
   }
 
-  bool are_adjacent(Vertex_ptr& u, Vertex_ptr& v) {
+  bool are_adjacent(const Vertex* u, const Vertex* v) {
     for (const Edge& e : edges_) {
       if (e.get_source().get() && *(e.get_source().get()) == *u) {
 	if (e.get_dest().get() && *(e.get_dest().get()) == *v) {
@@ -329,4 +329,45 @@ class DirectedGraph {
 
  private:
   vector<Edge> edges_;
+};
+
+class DirectedAcyclicGraph {
+ public:
+  DirectedAcyclicGraph() {
+    directed_graph_ = std::make_unique<DirectedGraph>();
+  }
+  void add(const Vertex* u) {
+    directed_graph_.get()->add(u);
+  }
+  void add_edge(const Vertex* source, const Vertex* dest) {
+    // TODO: check for cycles first.
+    directed_graph_.get()->add_edge(source, dest);
+  }
+  void add_edge(const Edge* edge) {
+    // TODO: check for cycles.
+    directed_graph_.get()->add_edge(edge);
+  }
+  bool are_adjacent(const Vertex* u, const Vertex* v) {
+    return directed_graph_.get()->are_adjacent(u, v);
+  }
+  int edge_count() {
+    return directed_graph_.get()->edge_count();
+  }
+  vector<Vertex*> get_neighbors(Vertex* u) {
+    return directed_graph_.get()->get_neighbors(u);
+  }
+  void remove(const Vertex* u) {
+    directed_graph_.get()->remove(u);
+  }
+  Vertex* top() {
+    return directed_graph_.get()->top();
+  }
+  int vertex_count() {
+    return directed_graph_.get()->vertex_count();
+  }
+  string to_string() {
+    return directed_graph_.get()->to_string();
+  }
+ private:
+  unique_ptr<DirectedGraph> directed_graph_;
 };
