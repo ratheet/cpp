@@ -1,6 +1,9 @@
 #include <algorithm>
+#include <map>
 #include <memory>
+#include <set>
 #include <sstream>
+#include <stack>
 #include <string>
 #include <vector>
 
@@ -43,15 +46,15 @@ concept bool Graph =
   Edge_ptr<E> &&
   requires(G&& g, V u, V v, E e) {
   { g.add(u) } -> void;
-  { g.add_edge(u, v) } -> void;
-  { g.add_edge(e) } -> void;
+  { g.add_edge(u, v) } -> bool;
+  { g.add_edge(e) } -> bool;
   { g.are_adjacent(u, v) } -> bool;
   { g.edge_count() } -> int;
   { g.get_neighbors(u) } -> std::vector<V>;
   { g.remove(u) } -> void;
   { g.top() } -> V;
   { g.vertex_count() } -> int;
-  };
+};
 
 // Library functions using concepts.
 namespace graph_lib {
@@ -71,12 +74,12 @@ namespace graph_lib {
     g.remove(x);
   }
 
-  void add_edge(Graph<Vertex*, Edge*>& g, Vertex_ptr x, Vertex_ptr y) {
-    g.add_edge(x, y);
+  bool add_edge(Graph<Vertex*, Edge*>& g, Vertex_ptr x, Vertex_ptr y) {
+    return g.add_edge(x, y);
   }
 
-  void add_edge(Graph<Vertex*, Edge*>& g, Edge_ptr x) {
-    g.add_edge(x);
+  bool add_edge(Graph<Vertex*, Edge*>& g, Edge_ptr x) {
+    return g.add_edge(x);
   }
 
   Value value(Vertex_ptr x) {
@@ -230,15 +233,21 @@ class DirectedGraph {
     edges_.push_back(edge);
   }
 
-  void add_edge(const Vertex* u, const Vertex* v) {
+  bool add_edge(const Vertex* u, const Vertex* v) {
     Edge edge;
     edge.set_source(*u);
     edge.set_dest(*v);
     edges_.push_back(edge);
+    return true;
   }
 
-  void add_edge(const Edge* e) {
+  bool add_edge(const Edge* e) {
     edges_.push_back(*e);
+    return true;
+  }
+
+  void remove_edge(const Edge* e) {
+    edges_.erase(std::remove(edges_.begin(), edges_.end(), *e), edges_.end());
   }
 
   bool are_adjacent(const Vertex* u, const Vertex* v) {
@@ -262,6 +271,10 @@ class DirectedGraph {
       }
     }
     return num_edges;
+  }
+
+  vector<Edge> get_adjacency_list() {
+    return edges_;
   }
 
   vector<Vertex_ptr> get_neighbors(Vertex_ptr& vertex)
@@ -339,13 +352,20 @@ class DirectedAcyclicGraph {
   void add(const Vertex* u) {
     directed_graph_.get()->add(u);
   }
-  void add_edge(const Vertex* source, const Vertex* dest) {
-    // TODO: check for cycles first.
+  bool add_edge(const Vertex* source, const Vertex* dest) {
     directed_graph_.get()->add_edge(source, dest);
+    if (check_for_cycles_()) {
+      Edge edge(std::make_unique<Vertex>(*source), std::make_unique<Vertex>(*dest), std::make_unique<Value>(kDummyValue));
+      directed_graph_.get()->remove_edge(&edge);
+      return false;
+    }
   }
-  void add_edge(const Edge* edge) {
-    // TODO: check for cycles.
+  bool add_edge(const Edge* edge) {
     directed_graph_.get()->add_edge(edge);
+    if (check_for_cycles_()) {
+      directed_graph_.get()->remove_edge(edge);
+      return false;
+    }
   }
   bool are_adjacent(const Vertex* u, const Vertex* v) {
     return directed_graph_.get()->are_adjacent(u, v);
@@ -370,4 +390,45 @@ class DirectedAcyclicGraph {
   }
  private:
   unique_ptr<DirectedGraph> directed_graph_;
+
+  bool check_for_cycles_() {
+    // Based on http://www.geeksforgeeks.org/detect-cycle-in-a-graph/.
+    std::map<int, Vertex*> vertex_ids_to_ptrs;
+    std::map<int, bool> recursive_stack;
+    for (const Edge& e : directed_graph_.get()->get_adjacency_list()) {
+      if (e.get_source().get()) {
+	// the second part of a Value is its ID.
+	vertex_ids_to_ptrs.insert(std::pair<int, Vertex*>(e.get_source().get()->value().second, e.get_source().get()));
+	recursive_stack.insert(std::pair<int, bool>(e.get_source().get()->value().second, false));
+      }
+      if (e.get_dest().get()) {
+	vertex_ids_to_ptrs.insert(std::pair<int, Vertex*>(e.get_dest().get()->value().second, e.get_dest().get()));
+	recursive_stack.insert(std::pair<int, bool>(e.get_dest().get()->value().second, false));
+      }
+    }
+    std::set<int> visited_set;
+    for (auto& vertex_id_to_ptr : vertex_ids_to_ptrs) {
+      cycle_checker_(vertex_ids_to_ptrs, vertex_id_to_ptr.first, visited_set, recursive_stack);
+    }
+    return false;
+  }
+
+  bool cycle_checker_(std::map<int, Vertex*>& vertex_id_to_ptrs, int vertex_id, std::set<int>& visited_set, std::map<int, bool>& recursive_stack) {
+    if (visited_set.find(vertex_id) == visited_set.end()) {
+      visited_set.insert(vertex_id);
+      recursive_stack[vertex_id] = true;
+      Vertex* vtx = vertex_id_to_ptrs[vertex_id];
+      vector<Vertex*> neighbors = directed_graph_.get()->get_neighbors(vtx);
+      for (Vertex* neighbor : neighbors) {
+	int neighbor_id = neighbor->value().second;
+	if (visited_set.find(neighbor_id) == visited_set.end() && cycle_checker_(vertex_id_to_ptrs, neighbor_id, visited_set, recursive_stack)) {
+	  return true;
+	} else if (recursive_stack[neighbor_id]) {
+	  return true;
+	}
+      }
+    }
+    recursive_stack[vertex_id] = false;
+    return false;
+  }
 };

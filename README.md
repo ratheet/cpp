@@ -1,6 +1,6 @@
 # C++ toy graphs library.
 
-To compile:
+To compile/run:
 ```shell
-$ g++ --std=c++1z -fconcepts graphs_test.cc -o graphs_test 
+$ g++ --std=c++1z -fconcepts main.cpp -o main && ./main
 ```
