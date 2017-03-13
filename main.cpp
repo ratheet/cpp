@@ -39,11 +39,30 @@ void test_adjacent() {
   assert(!graph_lib::adjacent(dg, v2_ptr, v3_ptr));
   assert(!graph_lib::adjacent(dg, v3_ptr, v2_ptr));
 
+  // TODO: test that adjacent vertices are adjacent.
   DirectedAcyclicGraph dag;
   dag.add(v1_ptr);
   dag.add(v2_ptr);
   dag.add(v3_ptr);
   assert(!graph_lib::adjacent(dag, v1_ptr, v2_ptr));
+  assert(!graph_lib::adjacent(dag, v2_ptr, v1_ptr));
+  assert(!graph_lib::adjacent(dag, v1_ptr, v3_ptr));
+  assert(!graph_lib::adjacent(dag, v3_ptr, v1_ptr));
+  assert(!graph_lib::adjacent(dag, v2_ptr, v3_ptr));
+  assert(!graph_lib::adjacent(dag, v3_ptr, v2_ptr));
+
+  // TODO: test that adjacent vertices are adjacent.
+  Tree tree;
+  tree.add(v1_ptr);
+  tree.add(v2_ptr);
+  tree.add(v3_ptr);
+  assert(!graph_lib::adjacent(tree, v1_ptr, v2_ptr));
+  assert(!graph_lib::adjacent(tree, v2_ptr, v1_ptr));
+  assert(!graph_lib::adjacent(tree, v1_ptr, v3_ptr));
+  assert(!graph_lib::adjacent(tree, v3_ptr, v1_ptr));
+  assert(!graph_lib::adjacent(tree, v2_ptr, v3_ptr));
+  assert(!graph_lib::adjacent(tree, v3_ptr, v2_ptr));
+   
 }
 
 void print(Graph<Vertex*, Edge*> g) {
