@@ -33,7 +33,6 @@ class Tree {
     dag_.get()->remove(u);
   }
   Vertex* top() {
-    // TODO: top should be root
     return dag_.get()->top();
   }
   int vertex_count() {

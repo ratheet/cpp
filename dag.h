@@ -3,7 +3,7 @@ class DirectedAcyclicGraph {
   DirectedAcyclicGraph() {
     directed_graph_ = std::make_unique<DirectedGraph>();
   }
-  DirectedAcyclicGraph(const DirectedAcyclicGraph &dag) noexcept {
+  DirectedAcyclicGraph(const DirectedAcyclicGraph& dag) noexcept {
     if (dag.directed_graph_.get()) {
       directed_graph_ = std::make_unique<DirectedGraph>(*(dag.directed_graph_.get()));
     }
@@ -18,6 +18,7 @@ class DirectedAcyclicGraph {
       directed_graph_.get()->remove_edge(&edge);
       return false;
     }
+    return true;
   }
   bool add_edge(const Edge* edge) {
     directed_graph_.get()->add_edge(edge);
@@ -25,6 +26,7 @@ class DirectedAcyclicGraph {
       directed_graph_.get()->remove_edge(edge);
       return false;
     }
+    return true;
   }
   vector<Edge> get_adjacency_list() {
     return directed_graph_.get()->get_adjacency_list();
@@ -55,31 +57,33 @@ class DirectedAcyclicGraph {
 
   bool check_for_cycles_() {
     // Based on http://www.geeksforgeeks.org/detect-cycle-in-a-graph/.
-    std::map<int, Vertex*> vertex_ids_to_ptrs;
+    std::map<int, Vertex> vertex_ids_to_ptrs;
     std::map<int, bool> recursive_stack;
     for (const Edge& e : directed_graph_.get()->get_adjacency_list()) {
       if (e.get_source().get()) {
 	// the second part of a Value is its ID.
-	vertex_ids_to_ptrs.insert(std::pair<int, Vertex*>(e.get_source().get()->value().second, e.get_source().get()));
+	vertex_ids_to_ptrs.insert(std::pair<int, Vertex>(e.get_source().get()->value().second, *e.get_source().get()));
 	recursive_stack.insert(std::pair<int, bool>(e.get_source().get()->value().second, false));
       }
       if (e.get_dest().get()) {
-	vertex_ids_to_ptrs.insert(std::pair<int, Vertex*>(e.get_dest().get()->value().second, e.get_dest().get()));
+	vertex_ids_to_ptrs.insert(std::pair<int, Vertex>(e.get_dest().get()->value().second, *e.get_dest().get()));
 	recursive_stack.insert(std::pair<int, bool>(e.get_dest().get()->value().second, false));
       }
     }
     std::set<int> visited_set;
     for (auto& vertex_id_to_ptr : vertex_ids_to_ptrs) {
-      cycle_checker_(vertex_ids_to_ptrs, vertex_id_to_ptr.first, visited_set, recursive_stack);
+      if (cycle_checker_(vertex_ids_to_ptrs, vertex_id_to_ptr.first, visited_set, recursive_stack)) {
+	return true;
+      }
     }
     return false;
   }
-  bool cycle_checker_(std::map<int, Vertex*>& vertex_id_to_ptrs, int vertex_id, std::set<int>& visited_set, std::map<int, bool>& recursive_stack) {
+  bool cycle_checker_(std::map<int, Vertex>& vertex_id_to_ptrs, int vertex_id, std::set<int>& visited_set, std::map<int, bool>& recursive_stack) {
     if (visited_set.find(vertex_id) == visited_set.end()) {
       visited_set.insert(vertex_id);
       recursive_stack[vertex_id] = true;
-      Vertex* vtx = vertex_id_to_ptrs[vertex_id];
-      vector<Vertex*> neighbors = directed_graph_.get()->get_neighbors(vtx);
+      Vertex vtx = vertex_id_to_ptrs[vertex_id];
+      vector<Vertex*> neighbors = directed_graph_.get()->get_neighbors(&vtx);
       for (Vertex* neighbor : neighbors) {
 	int neighbor_id = neighbor->value().second;
 	if (visited_set.find(neighbor_id) == visited_set.end() && cycle_checker_(vertex_id_to_ptrs, neighbor_id, visited_set, recursive_stack)) {

@@ -101,11 +101,26 @@ namespace graph_lib {
   Vertex_ptr top(Graph<Vertex*, Edge*>& g) {
     return g.top();
   }
+  
+  void print(Graph<Vertex*, Edge*> g) {
+    std::cout << g.to_string() << "\n";
+  }
+  
+  int count_vertices(Graph<Vertex*, Edge*> g) {
+    return g.vertex_count();
+  }
+
+  int count_edges(Graph<Vertex*, Edge*> g) {
+    return g.edge_count();
+  }
 }
 
 // Class definitions.
 class Vertex {
  public:
+  Vertex() {
+    value_ = std::pair<string, int>("DUMMY", -1);
+  }
   Vertex(const Vertex& vertex) : value_(vertex.value_) {}
   Vertex(const Value value) : value_(value) {}
   bool operator==(const Vertex& other) const {

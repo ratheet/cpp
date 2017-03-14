@@ -10,18 +10,6 @@
 using std::cout;
 using std::make_pair;
 
-DirectedGraph make_unconnected_directed_graph() {
-  DirectedGraph dg;
-  Vertex v1(make_pair("A", 1));
-  Vertex v2(make_pair("B", 2));
-  Vertex v3(make_pair("C", 3));
-
-  dg.add(&v1);
-  dg.add(&v2);
-  dg.add(&v3);
-  return dg;
-}
-
 void test_adjacent() {
   DirectedGraph dg;
   Vertex v1(make_pair("A", 1));
@@ -84,41 +72,83 @@ void test_adjacent() {
   assert(graph_lib::adjacent(tree, &v1, &v3));
 }
 
-void print(Graph<Vertex*, Edge*> g) {
-  cout << g.to_string() << "\n";
-}
-
-int count_vertices(Graph<Vertex*, Edge*> g) {
-  return g.vertex_count();
-}
-
-int count_edges(Graph<Vertex*, Edge*> g) {
-  return g.edge_count();
-}
 
 void test_print() {
-  DirectedGraph dg = make_unconnected_directed_graph();
-  print(dg);  
-}
-
-void test_count_vertices() {
-  DirectedGraph dg = make_unconnected_directed_graph();
-  assert(count_vertices(dg) == 3);
-
-  DirectedAcyclicGraph dag;
+  DirectedGraph dg;
   Vertex v1(make_pair("A", 1));
   Vertex v2(make_pair("B", 2));
   Vertex v3(make_pair("C", 3));
-  
+  dg.add(&v1);
+  dg.add(&v2);
+  dg.add(&v3);
+
+  graph_lib::print(dg);
+
+  DirectedAcyclicGraph dag;
+  dag.add(&v1);
+  dag.add(&v2);
+  dag.add_edge(&v2, &v3);
+
+  graph_lib::print(dag);
+}
+
+void test_count_vertices() {
+  DirectedGraph dg;
+  Vertex v1(make_pair("A", 1));
+  Vertex v2(make_pair("B", 2));
+  Vertex v3(make_pair("C", 3));
+  dg.add(&v1);
+  dg.add(&v2);
+  dg.add(&v3);
+
+  assert(graph_lib::count_vertices(dg) == 3);
+
+  DirectedAcyclicGraph dag;
   dag.add(&v1);
   dag.add(&v2);
   dag.add(&v3);
-  assert(count_vertices(dag) == 3);
+  assert(graph_lib::count_vertices(dag) == 3);
+
+  Tree tree;
+  tree.add(&v1);
+  tree.add(&v2);
+  tree.add(&v3);
+  assert(graph_lib::count_vertices(tree) == 3);
 }
 
 void test_count_edges() {
-  DirectedGraph dg = make_unconnected_directed_graph();
-  assert(count_edges(dg) == 0);
+  DirectedGraph dg;
+  Vertex v1(make_pair("A", 1));
+  Vertex v2(make_pair("B", 2));
+  Vertex v3(make_pair("C", 3));
+  dg.add(&v1);
+  dg.add(&v2);
+  dg.add(&v3);
+
+  assert(graph_lib::count_edges(dg) == 0);
+  assert(graph_lib::add_edge(dg, &v1, &v2));
+  assert(graph_lib::add_edge(dg, &v1, &v3));
+  assert(graph_lib::count_edges(dg) == 2);
+
+  DirectedAcyclicGraph dag;
+  dag.add(&v1);
+  dag.add(&v2);
+  dag.add(&v3);
+  assert(graph_lib::count_edges(dag) == 0);
+  assert(graph_lib::add_edge(dag, &v1, &v2));
+  assert(graph_lib::add_edge(dag, &v1, &v3));
+  assert(!graph_lib::add_edge(dag, &v3, &v1));
+  assert(graph_lib::count_edges(dag) == 2);
+
+  Tree tree;
+  tree.add(&v1);
+  tree.add(&v2);
+  tree.add(&v3);
+  assert(graph_lib::count_edges(tree) == 0);
+  assert(graph_lib::add_edge(tree, &v1, &v2));
+  assert(graph_lib::add_edge(tree, &v1, &v3));
+  assert(!graph_lib::add_edge(tree, &v3, &v1));
+  assert(graph_lib::count_edges(tree) == 2);
 }
 
 void test_neighbors() {
@@ -196,17 +226,31 @@ void test_add_edge() {
   Vertex v2(make_pair("B", 2));
   Vertex v3(make_pair("C", 3));
 
-  graph_lib::add_edge(dg, &v1, &v2);
-  graph_lib::add_edge(dg, &v1, &v3);
+  assert(graph_lib::add_edge(dg, &v1, &v2));
+  assert(graph_lib::add_edge(dg, &v1, &v3));
 
   assert(dg.edge_count() == 2);
 
   Edge e1(std::make_unique<Vertex>(v1),
 	  std::make_unique<Vertex>(v2),
 	  std::make_unique<Value>(kDummyValue));
-  graph_lib::add_edge(dg, &e1);
+  assert(graph_lib::add_edge(dg, &e1));
 
   assert(dg.edge_count() == 3);
+  vector<Edge> adj_list = dg.get_adjacency_list();
+  assert(adj_list.size() == 3);
+  assert(*(adj_list[0]).get_source() == v1);
+  assert(*(adj_list[0]).get_dest() == v2);
+  assert(*(adj_list[1]).get_source() == v1);
+  assert(*(adj_list[1]).get_dest() == v3);
+  assert(*(adj_list[2]).get_source() == v1);
+  assert(*(adj_list[2]).get_dest() == v2);
+
+  DirectedAcyclicGraph dag;
+  assert(graph_lib::add_edge(dag, &v1, &v2));
+  assert(graph_lib::add_edge(dag, &v1, &v3));
+  // Try to create a cycle: it should fail.
+  assert(!graph_lib::add_edge(dag, &v3, &v1));
 }
 
 void test_remove() {
@@ -218,9 +262,9 @@ void test_remove() {
   dg.add(&v2);
   dg.add(&v3);
 
-  assert(count_vertices(dg) == 3);
+  assert(graph_lib::count_vertices(dg) == 3);
   graph_lib::remove(dg, &v1);
-  assert(count_vertices(dg) == 2);
+  assert(graph_lib::count_vertices(dg) == 2);
   // TODO: assert v1 no longer in graph
 }
 
@@ -270,8 +314,8 @@ void test_edge_value() {
   Vertex v2(val2);
  
   Edge e = Edge(std::make_unique<Vertex>(v1),
-		 std::make_unique<Vertex>(v2),
-		 std::make_unique<Value>(val3));
+		std::make_unique<Vertex>(v2),
+		std::make_unique<Value>(val3));
   assert(val3 == graph_lib::value(&e));
 }
 
@@ -316,7 +360,7 @@ int main() {
   cout << "Testing add().\n";
   test_add();
   cout << "Testing add_edge().\n";
-  test_add_edge();
+  test_add_edge(); 
   cout << "Testing remove().\n";
   test_remove();
   cout << "Testing print.\n";

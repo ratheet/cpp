@@ -50,22 +50,14 @@ class DirectedGraph {
     return edges_;
   }
 
-  vector<Vertex_ptr> get_neighbors(Vertex_ptr& vertex)
-      const {
+  vector<Vertex*> get_neighbors(Vertex* vertex) {
     vector<Vertex*> neighbors;
     for (const Edge& e : edges_) {
-      if (e.get_source() && *(e.get_source()) == *vertex) {
-	if (e.get_dest()) {
-	  neighbors
-	    .push_back(std::make_unique<Vertex>(*(e.get_dest().get())).get());
-						
+      if (e.get_source().get() && *(e.get_source().get()) == *vertex) {
+	if (e.get_dest().get()) {
+	  neighbors.push_back(e.get_dest().get());
 	}
-      } else if (e.get_dest() && *(e.get_dest()) == *vertex) {
-	if (e.get_source()) {
-	  neighbors
-	    .push_back(std::make_unique<Vertex>(*(e.get_source().get())).get());
-	}
-      }      
+      }
     }
     return neighbors;
   }
@@ -101,16 +93,17 @@ class DirectedGraph {
   }
   
   int vertex_count() const {
-    int num_vertices = 0;
+    std::set<int> vertex_ids;
     for (const Edge& e : edges_) {
       if (e.get_source().get()) {
-	num_vertices++;
+	// second part of a Value is its ID
+	vertex_ids.insert(e.get_source().get()->value().second);
       }
       if (e.get_dest().get()) {
-	num_vertices++;
+	vertex_ids.insert(e.get_dest().get()->value().second);
       }
     }
-    return num_vertices;
+    return vertex_ids.size();
   }
 
  private:
