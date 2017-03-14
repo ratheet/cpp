@@ -2,5 +2,5 @@
 
 To compile/run:
 ```shell
-$ make main && ./main
+$ make clean && make main && ./main
 ```

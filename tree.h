@@ -3,6 +3,11 @@ class Tree {
   Tree() {
     dag_ = std::make_unique<DirectedAcyclicGraph>();
   }
+  Tree(const Tree& tree) noexcept {
+    if (tree.dag_.get()) {
+      dag_ = std::make_unique<DirectedAcyclicGraph>(*(tree.dag_.get()));
+    }
+  } 
   void add(const Vertex* u) {
     dag_.get()->add(u);
   }

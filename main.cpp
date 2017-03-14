@@ -104,6 +104,16 @@ void test_print() {
 void test_count_vertices() {
   DirectedGraph dg = make_unconnected_directed_graph();
   assert(count_vertices(dg) == 3);
+
+  DirectedAcyclicGraph dag;
+  Vertex v1(make_pair("A", 1));
+  Vertex v2(make_pair("B", 2));
+  Vertex v3(make_pair("C", 3));
+  
+  dag.add(&v1);
+  dag.add(&v2);
+  dag.add(&v3);
+  assert(count_vertices(dag) == 3);
 }
 
 void test_count_edges() {
