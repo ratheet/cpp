@@ -58,7 +58,7 @@ concept bool Graph =
 
 // Library functions using concepts.
 namespace graph_lib {
-  bool adjacent(Graph<Vertex*, Edge*>&& g, Vertex_ptr& u, Vertex_ptr& v) {
+  bool adjacent(Graph<Vertex*, Edge*>&& g, const Vertex_ptr& u, const Vertex_ptr& v) {
     return g.are_adjacent(u, v);
   }
   
@@ -366,6 +366,9 @@ class DirectedAcyclicGraph {
       directed_graph_.get()->remove_edge(edge);
       return false;
     }
+  }
+  vector<Edge> get_adjacency_list() {
+    return directed_graph_.get()->get_adjacency_list();
   }
   bool are_adjacent(const Vertex* u, const Vertex* v) {
     return directed_graph_.get()->are_adjacent(u, v);

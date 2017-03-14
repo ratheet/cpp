@@ -24,45 +24,61 @@ void test_adjacent() {
   Vertex v1(make_pair("A", 1));
   Vertex v2(make_pair("B", 2));
   Vertex v3(make_pair("C", 3));
-  Vertex* v1_ptr = std::make_unique<Vertex>(v1).get();
-  Vertex* v2_ptr = std::make_unique<Vertex>(v2).get();
-  Vertex* v3_ptr = std::make_unique<Vertex>(v3).get();
 
-  dg.add(v1_ptr);
-  dg.add(v2_ptr);
-  dg.add(v3_ptr);
+  dg.add(&v1);
+  dg.add(&v2);
+  dg.add(&v3);
 
-  assert(!graph_lib::adjacent(dg, v1_ptr, v2_ptr));
-  assert(!graph_lib::adjacent(dg, v2_ptr, v1_ptr));
-  assert(!graph_lib::adjacent(dg, v1_ptr, v3_ptr));
-  assert(!graph_lib::adjacent(dg, v3_ptr, v1_ptr));
-  assert(!graph_lib::adjacent(dg, v2_ptr, v3_ptr));
-  assert(!graph_lib::adjacent(dg, v3_ptr, v2_ptr));
+  assert(!graph_lib::adjacent(dg, &v1, &v2));
+  assert(!graph_lib::adjacent(dg, &v2, &v1));
+  assert(!graph_lib::adjacent(dg, &v1, &v3));
+  assert(!graph_lib::adjacent(dg, &v3, &v1));
+  assert(!graph_lib::adjacent(dg, &v2, &v3));
+  assert(!graph_lib::adjacent(dg, &v3, &v2));
 
-  // TODO: test that adjacent vertices are adjacent.
+  dg.add_edge(&v1, &v2);
+  dg.add_edge(&v1, &v3);
+  dg.add_edge(&v2, &v3);
+  assert(graph_lib::adjacent(dg, &v1, &v2));
+  assert(graph_lib::adjacent(dg, &v1, &v3));
+  assert(graph_lib::adjacent(dg, &v2, &v3));
+  
   DirectedAcyclicGraph dag;
-  dag.add(v1_ptr);
-  dag.add(v2_ptr);
-  dag.add(v3_ptr);
-  assert(!graph_lib::adjacent(dag, v1_ptr, v2_ptr));
-  assert(!graph_lib::adjacent(dag, v2_ptr, v1_ptr));
-  assert(!graph_lib::adjacent(dag, v1_ptr, v3_ptr));
-  assert(!graph_lib::adjacent(dag, v3_ptr, v1_ptr));
-  assert(!graph_lib::adjacent(dag, v2_ptr, v3_ptr));
-  assert(!graph_lib::adjacent(dag, v3_ptr, v2_ptr));
+  dag.add(&v1);
+  dag.add(&v2);
+  dag.add(&v3);
+  assert(!graph_lib::adjacent(dag, &v1, &v2));
+  assert(!graph_lib::adjacent(dag, &v2, &v1));
+  assert(!graph_lib::adjacent(dag, &v1, &v3));
+  assert(!graph_lib::adjacent(dag, &v3, &v1));
+  assert(!graph_lib::adjacent(dag, &v2, &v3));
+  assert(!graph_lib::adjacent(dag, &v3, &v2));
 
-  // TODO: test that adjacent vertices are adjacent.
+  dag.add_edge(&v1, &v2);
+  dag.add_edge(&v1, &v3);
+  dag.add_edge(&v2, &v3);
+
+  assert(graph_lib::adjacent(dag, &v1, &v2));
+  assert(graph_lib::adjacent(dag, &v1, &v3));
+  assert(graph_lib::adjacent(dag, &v2, &v3));
+
   Tree tree;
-  tree.add(v1_ptr);
-  tree.add(v2_ptr);
-  tree.add(v3_ptr);
-  assert(!graph_lib::adjacent(tree, v1_ptr, v2_ptr));
-  assert(!graph_lib::adjacent(tree, v2_ptr, v1_ptr));
-  assert(!graph_lib::adjacent(tree, v1_ptr, v3_ptr));
-  assert(!graph_lib::adjacent(tree, v3_ptr, v1_ptr));
-  assert(!graph_lib::adjacent(tree, v2_ptr, v3_ptr));
-  assert(!graph_lib::adjacent(tree, v3_ptr, v2_ptr));
-   
+  tree.add(&v1);
+  tree.add(&v2);
+  tree.add(&v3);
+
+  assert(!graph_lib::adjacent(tree, &v1, &v2));
+  assert(!graph_lib::adjacent(tree, &v2, &v1));
+  assert(!graph_lib::adjacent(tree, &v1, &v3));
+  assert(!graph_lib::adjacent(tree, &v3, &v1));
+  assert(!graph_lib::adjacent(tree, &v2, &v3));
+  assert(!graph_lib::adjacent(tree, &v3, &v2));
+  
+  tree.add_edge(&v1, &v2);
+  tree.add_edge(&v1, &v3);
+
+  assert(graph_lib::adjacent(tree, &v1, &v2));
+  assert(graph_lib::adjacent(tree, &v1, &v3));
 }
 
 void print(Graph<Vertex*, Edge*> g) {
@@ -118,7 +134,33 @@ void test_add() {
 
   graph_lib::add(dg, &v1);
   assert(dg.vertex_count() == 1);
-  // TODO: assert v1 in graph
+
+  vector<Edge> adj_list = dg.get_adjacency_list();
+  assert(adj_list.size() == 1);
+  assert(*(adj_list[0].get_source()) == v1);
+
+  graph_lib::add(dg, &v2);
+  assert(dg.vertex_count() == 2);
+  adj_list = dg.get_adjacency_list();
+  assert(adj_list.size() == 2);
+  assert(*(adj_list[0].get_source()) == v1);
+  assert(*(adj_list[1].get_source()) == v2);
+
+  DirectedAcyclicGraph dag;
+  graph_lib::add(dag, &v1);
+  assert(dag.vertex_count() == 1);
+
+  adj_list = dag.get_adjacency_list();
+  assert(adj_list.size() == 1);
+  assert(*(adj_list[0].get_source()) == v1);
+
+  graph_lib::add(dag, &v2);
+  assert(dag.vertex_count() == 2);
+  adj_list = dag.get_adjacency_list();
+  assert(adj_list.size() == 2);
+  assert(*(adj_list[0].get_source()) == v1);
+  assert(*(adj_list[1].get_source()) == v2);
+
 }
 
 void test_add_edge() {
