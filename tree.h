@@ -16,7 +16,10 @@ class Tree {
   }
   bool add_edge(const Edge* edge) {
     return dag_.get()->add_edge(edge);
-  }  
+  }
+  vector<Edge> get_adjacency_list() {
+    return dag_.get()->get_adjacency_list();
+  }
   bool are_adjacent(const Vertex* u, const Vertex* v) {
     return dag_.get()->are_adjacent(u, v);
   }

@@ -174,6 +174,20 @@ void test_add() {
   assert(*(adj_list[0].get_source()) == v1);
   assert(*(adj_list[1].get_source()) == v2);
 
+  Tree tree;
+  graph_lib::add(tree, &v1);
+  assert(tree.vertex_count() == 1);
+
+  adj_list = tree.get_adjacency_list();
+  assert(adj_list.size() == 1);
+  assert(*(adj_list[0].get_source()) == v1);
+
+  graph_lib::add(tree, &v2);
+  assert(tree.vertex_count() == 2);
+  adj_list = tree.get_adjacency_list();
+  assert(adj_list.size() == 2);
+  assert(*(adj_list[0].get_source()) == v1);
+  assert(*(adj_list[1].get_source()) == v2);
 }
 
 void test_add_edge() {
