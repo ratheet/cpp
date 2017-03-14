@@ -1,9 +1,10 @@
 class DirectedGraph {
  public:
-  void add(const Vertex* v) {
+  bool add(const Vertex* v) {
     Edge edge;
     edge.set_source(*v);
     edges_.push_back(edge);
+    return true;
   } 
 
   bool add_edge(const Vertex* u, const Vertex* v) {
@@ -19,8 +20,9 @@ class DirectedGraph {
     return true;
   }
 
-  void remove_edge(const Edge* e) {
+  bool remove_edge(const Edge* e) {
     edges_.erase(std::remove(edges_.begin(), edges_.end(), *e), edges_.end());
+    return true;
   }
 
   bool are_adjacent(const Vertex* u, const Vertex* v) {

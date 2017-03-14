@@ -8,8 +8,12 @@ class Tree {
       dag_ = std::make_unique<DirectedAcyclicGraph>(*(tree.dag_.get()));
     }
   } 
-  void add(const Vertex* u) {
-    dag_.get()->add(u);
+  bool add(const Vertex* u) {
+    if (get_adjacency_list().size() > 0) {
+      // Only allowed to add when the tree is empty.
+      return false;
+    }
+    return dag_.get()->add(u);
   }
   bool add_edge(const Vertex* source, const Vertex* dest) {
     return dag_.get()->add_edge(source, dest);

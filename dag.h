@@ -8,8 +8,8 @@ class DirectedAcyclicGraph {
       directed_graph_ = std::make_unique<DirectedGraph>(*(dag.directed_graph_.get()));
     }
   }
-  void add(const Vertex* u) {
-    directed_graph_.get()->add(u);
+  bool add(const Vertex* u) {
+    return directed_graph_.get()->add(u);
   }
   bool add_edge(const Vertex* source, const Vertex* dest) {
     directed_graph_.get()->add_edge(source, dest);

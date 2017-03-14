@@ -45,7 +45,7 @@ concept bool Graph =
   Vertex_ptr<V> &&
   Edge_ptr<E> &&
   requires(G&& g, V u, V v, E e) {
-  { g.add(u) } -> void;
+  { g.add(u) } -> bool;
   { g.add_edge(u, v) } -> bool;
   { g.add_edge(e) } -> bool;
   { g.are_adjacent(u, v) } -> bool;
@@ -66,8 +66,8 @@ namespace graph_lib {
     return g.get_neighbors(x);
   }
   
-  void add(Graph<Vertex*, Edge*>& g, Vertex_ptr x) {
-    g.add(x);
+  bool add(Graph<Vertex*, Edge*>& g, Vertex_ptr x) {
+    return g.add(x);
   }
 
   void remove(Graph<Vertex*, Edge*>& g, Vertex_ptr x) {
