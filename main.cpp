@@ -3,6 +3,9 @@
 #include <typeinfo>
 #include <vector>
 #include "graphs.h"
+#include "dg.h"
+#include "dag.h"
+#include "tree.h"
 
 using std::cout;
 using std::make_pair;
